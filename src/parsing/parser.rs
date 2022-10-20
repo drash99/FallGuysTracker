@@ -12,6 +12,8 @@ pub struct Parser {
     regex_spawn_match: Regex,
     regex_unspawn: Regex,
     regex_success: Regex,
+    regex_game_status: Regex,
+    regex_loaded_stage: Regex,
 }
 
 impl Parser {
@@ -24,6 +26,8 @@ impl Parser {
             regex_spawn_match: Regex::new(r"\d{4}-\d{2}-\d{2}: \[\w*\] Handling bootstrap for \w* player FallGuy \[(\d*)\] \([\w\d.]*\), playerID = (\d*), squadID = (\d*)+").unwrap(),
             regex_unspawn : Regex::new(r"\d{4}-\d{2}-\d{2}: \[\w*\] Handling unspawn for player FallGuy \[(\d*)\]").unwrap(),
             regex_success : Regex::new(r"\d{4}-\d{2}-\d{2}: ClientGameManager::HandleServerPlayerProgress PlayerId=(\d*) is succeeded=(\w*)").unwrap(),
+            regex_game_status : Regex::new(r"\d{4}-\d{2}-\d{2}: \[ClientGameSession\] NumPlayersAchievingObjective=(\d*)").unwrap(),
+            regex_loaded_stage : Regex::new(r"\d{4}-\d{2}-\d{2}: \[\w*\] Loading game level scene ([\w_]*)").unwrap(),
         }
     }
 
@@ -45,14 +49,19 @@ impl Parser {
         let _first = split.next().unwrap();
         let second = split.next().unwrap();
         match second {
-            "[ClientGameSession]" => ParseLineResult::UnhandledGameSession(line),
+            "[ClientGameSession]" => {
+                let captured = self.regex_game_status.captures(&line).unwrap_or_else(|| panic!("Regex match failed for {}", line));
+                ParseLineResult::NumPlayersAchievingObjective(captured.get(1).unwrap().as_str().parse::<usize>().unwrap())
+                
+            },
             "[ClientGameManager]" => match split.next().unwrap() {
+                "Shutdown" => ParseLineResult::Shutdown,
                 "Finalising" => {
                     let captured = self
                         .regex_spawn
                         .captures(&line)
                         .unwrap_or_else(|| panic!("Failed to parse line: {}", line));
-                    ParseLineResult::Spawned(
+                    ParseLineResult::Spawned2(
                         captured
                             .get(2)
                             .map_or(String::new(), |m| m.as_str().to_string()),
@@ -136,7 +145,24 @@ impl Parser {
                         false
                     },
                 )
-            }
+            },
+            "[StateGameLoading]" => {
+                match split.next().unwrap() {
+                    "Loading" => {
+                        let captured = self.regex_loaded_stage.captures(&line).unwrap_or_else(|| panic!("Failed to capture loaded stage"));
+                        ParseLineResult::LoadedStage(captured.get(1).unwrap().as_str().to_string())
+                    },
+                    "Starting" => ParseLineResult::Start,
+                    _ => ParseLineResult::Unhandled(line),
+                }
+            },
+            "Player" => {
+                let playernum = split.next().unwrap().parse::<usize>().unwrap_or_else(|_| panic!("Failed to parse playernum {}",line));
+                let _ = split.next().unwrap();
+                let _ = split.next().unwrap();
+                let score = split.next().unwrap().parse::<usize>().unwrap();
+                ParseLineResult::Score(playernum, score)
+            },
             _ => ParseLineResult::Misc,
         }
     }
