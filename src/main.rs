@@ -1,4 +1,5 @@
 pub mod parsing;
+pub mod game;
 
 use parsing::*;
 use std::fs;

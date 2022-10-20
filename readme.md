@@ -2,13 +2,14 @@
 
 * Currently WIP
 ## Done:
-* Parsing spawn
+* Parse all logs
+* Reconstruct game
 
 ## Todos:
-* Parse all logs
 * Test parsing on changing log file
 * Reconstruct game
 * GUI
+* Change parsing mechanism to RegexSet
 
 ## Misc
 * Measuring the time cannot be done because log file format has changed.
