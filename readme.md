@@ -4,12 +4,11 @@
 ## Done:
 * Parse all logs
 * Reconstruct game
+* Basic GUI
 
 ## Todos:
-* Test parsing on changing log file
-* Reconstruct game
-* GUI
-* Change parsing mechanism to RegexSet
+* Fancy GUI
+* Team score
 
 ## Misc
-* Measuring the time cannot be done because log file format has changed.
+* Measuring the time cannot be done accurately because log file format has changed.

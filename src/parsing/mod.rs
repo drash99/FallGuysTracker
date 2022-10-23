@@ -7,6 +7,7 @@ pub enum ParseLineResult {
     Spawned(String, String, usize, usize),
     Spawned2(String, String, usize, usize),
     SpawnMatch(usize, usize, usize),
+    SpawnMatchMe(usize, usize, usize),
     Unspawn(usize),
     Success(usize, bool),
     NumPlayersAchievingObjective(usize),
