@@ -9,3 +9,5 @@ edition = "2021"
 
 [dependencies]
 regex = "1"
+native-windows-gui = "1.0.12"
+native-windows-derive = "1.0.3"

@@ -38,6 +38,7 @@ impl Parser {
         for line in buffer.lines() {
             lines.push(line.to_string());
         }
+        println!("{} lines", lines.len());
         lines
     }
 
@@ -169,9 +170,7 @@ impl Parser {
 
     pub fn parse(&mut self) {
         let lines = self.get_lines();
-        for line in lines {
-            let result = self.parse_line(line);
-            self.parsed.push(result);
-        }
+        let parsed = lines.iter().map(|line| self.parse_line(line.to_string())).collect::<Vec<ParseLineResult>>();
+        self.parsed =parsed;
     }
 }

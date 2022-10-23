@@ -2,7 +2,7 @@ mod parser;
 
 pub use parser::Parser;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum ParseLineResult {
     Spawned(String, String, usize, usize),
     Spawned2(String, String, usize, usize),

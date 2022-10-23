@@ -2,7 +2,7 @@ mod reconstruct;
 
 pub use reconstruct::Reconstruct;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub struct Player {
     name: String,
     platform: String,
@@ -43,5 +43,22 @@ impl std::fmt::Display for Player {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(f, "{}({}) team {}", self.name, self.platform, self.squadid)?;
         Ok(())
+    }
+}
+
+impl PartialOrd for Player {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for Player{
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        let out = self.squadid.cmp(&other.squadid);
+        if out == std::cmp::Ordering::Equal {
+            other.score.cmp(&self.score)
+        } else {
+            out
+        }
     }
 }
