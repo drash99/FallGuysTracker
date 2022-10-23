@@ -20,8 +20,10 @@ pub struct AppData {
 }
 impl AppData {
     pub fn new() -> AppData {
+        let userpath = std::env::var("userprofile").expect("No APP_DATA directory");
+        let path = format!("{}\\AppData\\LocalLow\\Mediatonic\\FallGuys_client\\Player.log", userpath);
         let file = File::open(
-            "C:\\Users\\Leo\\AppData\\LocalLow\\Mediatonic\\FallGuys_client\\Player.log",
+            path,
         )
         .unwrap();
         let parser = Parser::new(file);

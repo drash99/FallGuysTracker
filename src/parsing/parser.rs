@@ -5,6 +5,7 @@ use std::io::*;
 
 #[derive(Debug)]
 pub struct Parser {
+    pub last_size : u64,
     pub file: File,
     pub parsed: Vec<ParseLineResult>,
     regex_spawn: Regex,
@@ -21,28 +22,34 @@ pub struct Parser {
 impl Parser {
     pub fn new(file: File) -> Parser {
         Parser {
+            last_size: file.metadata().expect("Err: cannot open log file").len(),
             file,
             parsed: Vec::new(),
-            regex_spawn: Regex::new(r"\d{4}-\d{2}-\d{2}: \[\w*\] Finalising spawn for player FallGuy \[(\d*)\] ([^(]*) \((\w*)\)+").unwrap(),
-            regex_spawn2: Regex::new(r"\d{4}-\d{2}-\d{2}: \[\w*\] Adding Spectator target \w*_([^(]*) \((\w*)\) with Party ID: ([\d ]*) Squad ID: (\d*) and playerID: (\d*)+").unwrap(),
-            regex_spawn_match: Regex::new(r"\d{4}-\d{2}-\d{2}: \[\w*\] Handling bootstrap for remote player FallGuy \[(\d*)\] \([\w\d.]*\), playerID = (\d*), squadID = (\d*)+").unwrap(),
-            regex_spawn_local_match: Regex::new(r"\d{4}-\d{2}-\d{2}: \[\w*\] Handling bootstrap for local player FallGuy \[(\d*)\] \([\w\d.]*\), playerID = (\d*), squadID = (\d*)+").unwrap(),
-            regex_unspawn : Regex::new(r"\d{4}-\d{2}-\d{2}: \[\w*\] Handling unspawn for player FallGuy \[(\d*)\]").unwrap(),
-            regex_success : Regex::new(r"\d{4}-\d{2}-\d{2}: ClientGameManager::HandleServerPlayerProgress PlayerId=(\d*) is succeeded=(\w*)").unwrap(),
-            regex_game_status : Regex::new(r"\d{4}-\d{2}-\d{2}: \[ClientGameSession\] NumPlayersAchievingObjective=(\d*)").unwrap(),
-            regex_loaded_stage : Regex::new(r"\d{4}-\d{2}-\d{2}: \[\w*\] Loading game level scene ([\w_]*)").unwrap(),
-            regex_start_game : Regex::new(r"\d{4}-\d{2}-\d{2}: \[GameSession\] Changing state from Countdown to Playing").unwrap(),
+            regex_spawn: Regex::new(r"^\d{4}-\d{2}-\d{2}: \[\w*\] Finalising spawn for player FallGuy \[(\d*)\] ([^(]*) \((\w*)\)+").unwrap(),
+            regex_spawn2: Regex::new(r"^\d{4}-\d{2}-\d{2}: \[\w*\] Adding Spectator target \w*_([^(]*) \((\w*)\) with Party ID: ([\d ]*) Squad ID: (\d*) and playerID: (\d*)+").unwrap(),
+            regex_spawn_match: Regex::new(r"^\d{4}-\d{2}-\d{2}: \[\w*\] Handling bootstrap for remote player FallGuy \[(\d*)\] \([\w\d.]*\), playerID = (\d*), squadID = (\d*)+").unwrap(),
+            regex_spawn_local_match: Regex::new(r"^\d{4}-\d{2}-\d{2}: \[\w*\] Handling bootstrap for local player FallGuy \[(\d*)\] \([\w\d.]*\), playerID = (\d*), squadID = (\d*)+").unwrap(),
+            regex_unspawn : Regex::new(r"^\d{4}-\d{2}-\d{2}: \[\w*\] Handling unspawn for player FallGuy \[(\d*)\]").unwrap(),
+            regex_success : Regex::new(r"^\d{4}-\d{2}-\d{2}: ClientGameManager::HandleServerPlayerProgress PlayerId=(\d*) is succeeded=(\w*)").unwrap(),
+            regex_game_status : Regex::new(r"^\d{4}-\d{2}-\d{2}: \[ClientGameSession\] NumPlayersAchievingObjective=(\d*)").unwrap(),
+            regex_loaded_stage : Regex::new(r"^\d{4}-\d{2}-\d{2}: \[\w*\] Loading game level scene ([\w_]*)").unwrap(),
+            regex_start_game : Regex::new(r"^\d{4}-\d{2}-\d{2}: \[GameSession\] Changing state from Countdown to Playing").unwrap(),
         }
     }
 
     fn get_lines(&mut self) -> Vec<String> {
         let mut lines = Vec::new();
         let mut buffer = String::new();
+        if self.file.metadata().expect("Err: cannot open log file").len() < self.last_size {
+            let _ = self.file.seek(SeekFrom::Start(0)).expect("seek failure");
+            self.last_size = self.file.metadata().expect("Err: cannot open log file").len();
+        }
         self.file.read_to_string(&mut buffer).unwrap();
         for line in buffer.lines() {
             lines.push(line.to_string());
         }
         //println!("{} lines", lines.len());
+        self.last_size = self.file.metadata().expect("Err: cannot open log file").len();
         lines
     }
 
