@@ -1,15 +1,18 @@
 #![windows_subsystem = "windows"]
 pub mod game;
 pub mod parsing;
+pub mod ui;
 
 extern crate native_windows_derive as nwd;
 extern crate native_windows_gui as nwg;
 
 use game::Reconstruct;
 use parsing::*;
+use ui::Overlay;
 use std::cell::RefCell;
 use std::fs::File;
 use std::time;
+use std::sync::{Arc, Mutex};
 
 use nwd::NwgUi;
 use nwg::NativeUi;
@@ -47,6 +50,8 @@ impl Default for AppData {
     }
 }
 
+
+
 #[derive(Default, NwgUi)]
 pub struct BasicApp {
     #[nwg_control(size: (500, 1000), position: (300, 300), title: "Fallguys Tracker", flags: "WINDOW|VISIBLE")]
@@ -55,14 +60,18 @@ pub struct BasicApp {
 
     #[nwg_control(text:"", size: (280, 1000), position: (10, 0))]
     text_box: nwg::Label,
-    #[nwg_control(text:"", size: (200, 1000), position: (300, 0))]
+    #[nwg_control(text:"", size: (200, 700), position: (300, 0))]
     team_box: nwg::Label,
 
-    #[nwg_control(interval: time::Duration::from_millis(100), active: true)]
+    #[nwg_control(text:"Overlay", size: (100, 30), position: (300, 700))]
+    #[nwg_events(OnButtonClick: [BasicApp::overlay])]
+    overlay_button: nwg::Button,
+
+    #[nwg_control(interval: time::Duration::from_millis(500), active: true)]
     #[nwg_events(OnTimerTick: [BasicApp::update])]
     timer: nwg::AnimationTimer,
 
-    data: RefCell<AppData>,
+    data: Arc<Mutex<AppData>>,
 }
 
 impl BasicApp {
@@ -71,16 +80,23 @@ impl BasicApp {
     }
 
     fn update(&self) {
-        let mut data = self.data.borrow_mut();
+        let mut data = self.data.lock().expect("failed to get lock");
         data.update();
         self.text_box.set_text(&format!("{}", data.game));
         self.team_box.set_text(&data.game.print_team());
     }
+    fn overlay(&self) {
+        Overlay::popup(self.data.clone());
+    }   
 }
 
 fn main() {
     nwg::init().expect("Failed to init Native Windows GUI");
-    let data: RefCell<AppData> = RefCell::new(AppData::new());
+    nwg::Font::set_global_family("Segoe UI").expect("Failed to set default font");
+    let mut font = nwg::Font::default();
+    let _ = nwg::Font::builder().size(14).build(&mut font);
+    nwg::Font::set_global_default(Some(font)).expect("Failed to set default font");
+    let data = Arc::new(Mutex::new(AppData::new()));
     let _app = BasicApp::build_ui(BasicApp {
         data: data,
         ..Default::default()

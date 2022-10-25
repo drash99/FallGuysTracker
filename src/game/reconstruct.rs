@@ -10,7 +10,12 @@ pub struct Team {
     pub score: usize,
     pub num: usize,
 }
-
+fn truncate(s: &str, max_chars: usize) -> &str {
+    match s.char_indices().nth(max_chars) {
+        None => s,
+        Some((idx, _)) => &s[..idx],
+    }
+}
 impl PartialOrd for Team {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
@@ -68,7 +73,47 @@ impl Reconstruct {
             }
         }
     }
+    pub fn print_infos(&self) -> String{
+        let mut out = String::new();
+        out.push_str(&format!("Stage: {}\n", truncate(&self.stage, 20)));
+        out.push_str(&format!("Finished players: {}/{}\n", self.finishedplayers, self.totalplayers));
+        if let Some(my) = self.players[self.myid].as_ref() {
+            out.push_str(&format!("My score {}, #{}\n", my.score, self.myscore));
+            if my.died {
+                out.push_str(&format!("finish time : {:.2}\n", my.lifetime.as_secs_f32()));
+            }
+        }
+        if self.running {
+            out.push_str(&format!("Current Time : {:.2}\n", self.starttime.elapsed().as_secs_f32()));
+        }
+        out
+    }
+    pub fn print_my_team(&self) -> String {
+        let mut out = String::new();
+        if let Some(my) = self.players[self.myid].as_ref() {
+            for player in self.players.iter() {
+                if let Some(player) = player {
+                    if player.squadid == my.squadid {
+                        if player.finished {
+                            out.push_str("✔️");
+
+                        }
+                        else if player.died {
+                            out.push_str("☠️");
+                        }
+                        out.push_str(&format!("{:6}\t{}\n", truncate(&player.name, 6), player.score));
+                    }
+                }
+            }
+        }
+        out
+    }
     pub fn print_team(&self) -> String {
+        let mut myteam = 0;
+        if let Some(my) = self.players[self.myid].as_ref() {
+            myteam = my.squadid;
+        }
+
         let mut out = String::new();
         let mut team = self
             .teams
@@ -85,14 +130,30 @@ impl Reconstruct {
                 .iter()
                 .filter(|x| self.players[**x].as_ref().unwrap().finished)
                 .count();
+            let died = team
+                .players
+                .iter()
+                .filter(|x| self.players[**x].as_ref().unwrap().died).count();
+            if myteam == team.num {
+                out.push_str(&format!(
+                    "{}.▶️",
+                    i + 1,
+                ));
+
+            }else {
+                out.push_str(&format!(
+                    "{}. ",
+                    i + 1
+                ));
+            }
             out.push_str(&format!(
-                "{}.Team {}: {}, {}/{}\n",
-                i + 1,
+                "Team {}:\t{}, {}/{}/{}\n",
                 team.num,
                 team.score,
                 fin,
+                died,
                 p
-            ));
+            ))
         });
         out
     }
