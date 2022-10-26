@@ -8,11 +8,10 @@ extern crate native_windows_gui as nwg;
 
 use game::Reconstruct;
 use parsing::*;
-use ui::Overlay;
-use std::cell::RefCell;
 use std::fs::File;
-use std::time;
 use std::sync::{Arc, Mutex};
+use std::time;
+use ui::Overlay;
 
 use nwd::NwgUi;
 use nwg::NativeUi;
@@ -24,11 +23,11 @@ pub struct AppData {
 impl AppData {
     pub fn new() -> AppData {
         let userpath = std::env::var("userprofile").expect("No APP_DATA directory");
-        let path = format!("{}\\AppData\\LocalLow\\Mediatonic\\FallGuys_client\\Player.log", userpath);
-        let file = File::open(
-            path,
-        )
-        .unwrap();
+        let path = format!(
+            "{}\\AppData\\LocalLow\\Mediatonic\\FallGuys_client\\Player.log",
+            userpath
+        );
+        let file = File::open(path).unwrap();
         let parser = Parser::new(file);
         AppData {
             parser,
@@ -49,8 +48,6 @@ impl Default for AppData {
         Self::new()
     }
 }
-
-
 
 #[derive(Default, NwgUi)]
 pub struct BasicApp {
@@ -87,7 +84,7 @@ impl BasicApp {
     }
     fn overlay(&self) {
         Overlay::popup(self.data.clone());
-    }   
+    }
 }
 
 fn main() {

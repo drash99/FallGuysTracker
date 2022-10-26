@@ -45,19 +45,9 @@ impl Default for Player {
 impl std::fmt::Display for Player {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         if self.finished {
-            write!(
-                f,
-                "✔️{}({}) team {}",
-                self.name, self.platform, self.squadid
-            )?;
-
-        }
-        else if self.died {
-            write!(
-                f,
-                "☠️{}({}) team {}",
-                self.name, self.platform, self.squadid
-            )?;
+            write!(f, "✔️{}({}) team {}", self.name, self.platform, self.squadid)?;
+        } else if self.died {
+            write!(f, "☠️{}({}) team {}", self.name, self.platform, self.squadid)?;
         } else {
             write!(f, "{}({}) team {}", self.name, self.platform, self.squadid)?;
         }

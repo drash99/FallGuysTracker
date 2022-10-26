@@ -73,10 +73,13 @@ impl Reconstruct {
             }
         }
     }
-    pub fn print_infos(&self) -> String{
+    pub fn print_infos(&self) -> String {
         let mut out = String::new();
         out.push_str(&format!("Stage: {}\n", truncate(&self.stage, 20)));
-        out.push_str(&format!("Finished players: {}/{}\n", self.finishedplayers, self.totalplayers));
+        out.push_str(&format!(
+            "Finished players: {}/{}\n",
+            self.finishedplayers, self.totalplayers
+        ));
         if let Some(my) = self.players[self.myid].as_ref() {
             out.push_str(&format!("My score {}, #{}\n", my.score, self.myscore));
             if my.died {
@@ -84,27 +87,37 @@ impl Reconstruct {
             }
         }
         if self.running {
-            out.push_str(&format!("Current Time : {:.2}\n", self.starttime.elapsed().as_secs_f32()));
+            out.push_str(&format!(
+                "Current Time : {:.2}\n",
+                self.starttime.elapsed().as_secs_f32()
+            ));
         }
         out
     }
     pub fn print_my_team(&self) -> String {
         let mut out = String::new();
+        let mut playervec = Vec::new();
         if let Some(my) = self.players[self.myid].as_ref() {
             for player in self.players.iter() {
                 if let Some(player) = player {
                     if player.squadid == my.squadid {
-                        if player.finished {
-                            out.push_str("✔️");
-
-                        }
-                        else if player.died {
-                            out.push_str("☠️");
-                        }
-                        out.push_str(&format!("{:6}\t{}\n", truncate(&player.name, 6), player.score));
+                        playervec.push(player);
                     }
                 }
             }
+        }
+        playervec.sort();
+        for player in playervec.iter() {
+            if player.finished {
+                out.push_str("✔️");
+            } else if player.died {
+                out.push_str("☠️");
+            }
+            out.push_str(&format!(
+                "{:6}\t{}\n",
+                truncate(&player.name, 6),
+                player.score
+            ));
         }
         out
     }
@@ -133,26 +146,16 @@ impl Reconstruct {
             let died = team
                 .players
                 .iter()
-                .filter(|x| self.players[**x].as_ref().unwrap().died).count();
+                .filter(|x| self.players[**x].as_ref().unwrap().died)
+                .count();
             if myteam == team.num {
-                out.push_str(&format!(
-                    "{}.▶️",
-                    i + 1,
-                ));
-
-            }else {
-                out.push_str(&format!(
-                    "{}. ",
-                    i + 1
-                ));
+                out.push_str(&format!("{}.▶️", i + 1,));
+            } else {
+                out.push_str(&format!("{}. ", i + 1));
             }
             out.push_str(&format!(
                 "Team {}:\t{}, {}/{}/{}\n",
-                team.num,
-                team.score,
-                fin,
-                died,
-                p
+                team.num, team.score, fin, died, p
             ))
         });
         out

@@ -5,14 +5,16 @@ use std::io::*;
 
 #[derive(Debug)]
 pub struct Parser {
-    pub last_size : u64,
+    pub last_size: u64,
     pub file: File,
     pub parsed: Vec<ParseLineResult>,
     regex_spawn: Regex,
+    regex_spawn_bot: Regex,
     regex_spawn2: Regex,
     regex_spawn_match: Regex,
     regex_spawn_local_match: Regex,
     regex_unspawn: Regex,
+    regex_unspawn_bot: Regex,
     regex_success: Regex,
     regex_game_status: Regex,
     regex_loaded_stage: Regex,
@@ -26,10 +28,12 @@ impl Parser {
             file,
             parsed: Vec::new(),
             regex_spawn: Regex::new(r"^\d{4}-\d{2}-\d{2}: \[\w*\] Finalising spawn for player FallGuy \[(\d*)\] ([^(]*) \((\w*)\)+").unwrap(),
+            regex_spawn_bot: Regex::new(r"^\d{4}-\d{2}-\d{2}: \[\w*\] Finalising spawn for player PB_FallGuyBot \[(\d*)\]+").unwrap(),
             regex_spawn2: Regex::new(r"^\d{4}-\d{2}-\d{2}: \[\w*\] Adding Spectator target \w*_([^(]*) \((\w*)\) with Party ID: ([\d ]*) Squad ID: (\d*) and playerID: (\d*)+").unwrap(),
             regex_spawn_match: Regex::new(r"^\d{4}-\d{2}-\d{2}: \[\w*\] Handling bootstrap for remote player FallGuy \[(\d*)\] \([\w\d.]*\), playerID = (\d*), squadID = (\d*)+").unwrap(),
             regex_spawn_local_match: Regex::new(r"^\d{4}-\d{2}-\d{2}: \[\w*\] Handling bootstrap for local player FallGuy \[(\d*)\] \([\w\d.]*\), playerID = (\d*), squadID = (\d*)+").unwrap(),
             regex_unspawn : Regex::new(r"^\d{4}-\d{2}-\d{2}: \[\w*\] Handling unspawn for player FallGuy \[(\d*)\]").unwrap(),
+            regex_unspawn_bot : Regex::new(r"^\d{4}-\d{2}-\d{2}: \[\w*\] Handling unspawn for player PB_FallGuyBot \[(\d*)\]").unwrap(),
             regex_success : Regex::new(r"^\d{4}-\d{2}-\d{2}: ClientGameManager::HandleServerPlayerProgress PlayerId=(\d*) is succeeded=(\w*)").unwrap(),
             regex_game_status : Regex::new(r"^\d{4}-\d{2}-\d{2}: \[ClientGameSession\] NumPlayersAchievingObjective=(\d*)").unwrap(),
             regex_loaded_stage : Regex::new(r"^\d{4}-\d{2}-\d{2}: \[\w*\] Loading game level scene ([\w_]*)").unwrap(),
@@ -40,16 +44,30 @@ impl Parser {
     fn get_lines(&mut self) -> Vec<String> {
         let mut lines = Vec::new();
         let mut buffer = String::new();
-        if self.file.metadata().expect("Err: cannot open log file").len() < self.last_size {
+        if self
+            .file
+            .metadata()
+            .expect("Err: cannot open log file")
+            .len()
+            < self.last_size
+        {
             let _ = self.file.seek(SeekFrom::Start(0)).expect("seek failure");
-            self.last_size = self.file.metadata().expect("Err: cannot open log file").len();
+            self.last_size = self
+                .file
+                .metadata()
+                .expect("Err: cannot open log file")
+                .len();
         }
         self.file.read_to_string(&mut buffer).unwrap();
         for line in buffer.lines() {
             lines.push(line.to_string());
         }
         //println!("{} lines", lines.len());
-        self.last_size = self.file.metadata().expect("Err: cannot open log file").len();
+        self.last_size = self
+            .file
+            .metadata()
+            .expect("Err: cannot open log file")
+            .len();
         lines
     }
 
@@ -73,17 +91,32 @@ impl Parser {
             "[ClientGameManager]" => match split.next().unwrap() {
                 "Shutdown" => ParseLineResult::Shutdown,
                 "Finalising" => {
-                    let captured = self
-                        .regex_spawn
-                        .captures(&line)
-                        .unwrap_or_else(|| panic!("Failed to parse line: {}", line));
+                    let mut bot = false;
+                    let captured = self.regex_spawn.captures(&line).unwrap_or_else(|| {
+                        if line.contains("PB_FallGuyBot") {
+                            bot = true;
+                            self.regex_spawn_bot
+                                .captures(&line)
+                                .unwrap_or_else(|| panic!("Regex match failed for {}", line))
+                        } else {
+                            panic!("Regex match failed for {}", line)
+                        }
+                    });
                     ParseLineResult::Spawned2(
-                        captured
-                            .get(2)
-                            .map_or(String::new(), |m| m.as_str().to_string()),
-                        captured
-                            .get(3)
-                            .map_or(String::new(), |m| m.as_str().to_string()),
+                        if bot {
+                            "bot".to_string()
+                        } else {
+                            captured
+                                .get(2)
+                                .map_or(String::new(), |m| m.as_str().to_string())
+                        },
+                        if bot {
+                            "bot".to_string()
+                        } else {
+                            captured
+                                .get(3)
+                                .map_or(String::new(), |m| m.as_str().to_string())
+                        },
                         captured
                             .get(1)
                             .map_or(0, |m| m.as_str().parse::<usize>().unwrap()),
@@ -127,10 +160,11 @@ impl Parser {
                         }
                     }
                     "unspawn" => {
-                        let captured = self
-                            .regex_unspawn
-                            .captures(&line)
-                            .unwrap_or_else(|| panic!("Failed to parse line: {}", line));
+                        let captured = self.regex_unspawn.captures(&line).unwrap_or_else(|| {
+                            self.regex_unspawn_bot
+                                .captures(&line)
+                                .unwrap_or_else(|| panic!("Regex match failed for {}", line))
+                        });
                         ParseLineResult::Unspawn(
                             captured
                                 .get(1)
