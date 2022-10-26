@@ -27,7 +27,6 @@ impl AppData {
             "{}\\AppData\\LocalLow\\Mediatonic\\FallGuys_client\\Player.log",
             userpath
         );
-        let path = "C:\\Users\\Leo\\Downloads\\Player.log";
         let file = File::open(path).unwrap_or_else(|_| {
             nwg::simple_message(
                 "Error",
