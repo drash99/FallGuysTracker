@@ -27,7 +27,13 @@ impl AppData {
             "{}\\AppData\\LocalLow\\Mediatonic\\FallGuys_client\\Player.log",
             userpath
         );
-        let file = File::open(path).unwrap();
+        let file = File::open(path).unwrap_or_else(|_| {
+            nwg::simple_message(
+                "Error",
+                "log file not found! execute the game at least once before running this program",
+            );
+            panic!("log file not found! execute the game at least once before running this program")
+        });
         let parser = Parser::new(file);
         AppData {
             parser,
