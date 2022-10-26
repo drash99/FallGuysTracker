@@ -104,14 +104,14 @@ impl Parser {
                     });
                     ParseLineResult::Spawned2(
                         if bot {
-                            "bot".to_string()
+                            "🤖".to_string()
                         } else {
                             captured
                                 .get(2)
                                 .map_or(String::new(), |m| m.as_str().to_string())
                         },
                         if bot {
-                            "bot".to_string()
+                            "🤖".to_string()
                         } else {
                             captured
                                 .get(3)
