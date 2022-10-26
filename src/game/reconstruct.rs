@@ -249,14 +249,14 @@ impl Reconstruct {
 
 impl std::fmt::Display for Reconstruct {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "Stage: {}\n", self.stage)?;
-        write!(
+        writeln!(f, "Stage: {}", self.stage)?;
+        writeln!(
             f,
-            "Finished players: {}/{}\n",
+            "Finished players: {}/{}",
             self.finishedplayers, self.totalplayers
         )?;
         if let Some(my) = self.players[self.myid].as_ref() {
-            write!(f, "Me: {}: score {}, #{}\n", my, my.score, self.myscore)?;
+            writeln!(f, "Me: {}: score {}, #{}", my, my.score, self.myscore)?;
             if my.died {
                 write!(f, "time: {}\n", my.lifetime.as_secs())?;
             }
