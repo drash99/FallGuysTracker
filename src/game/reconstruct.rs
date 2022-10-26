@@ -44,6 +44,12 @@ pub struct Reconstruct {
     pub starttime: Instant,
 }
 
+impl Default for Reconstruct {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Reconstruct {
     pub fn new() -> Reconstruct {
         const INIT: Option<Player> = None;
@@ -62,13 +68,11 @@ impl Reconstruct {
         }
     }
     fn recalc_team_score(&mut self) {
-        for team in self.teams.iter_mut() {
-            if let Some(team) = team {
-                team.score = 0;
-                for player in team.players.iter() {
-                    if let Some(player) = self.players[*player].as_ref() {
-                        team.score += player.score;
-                    }
+        for team in self.teams.iter_mut().flatten() {
+            team.score = 0;
+            for player in team.players.iter() {
+                if let Some(player) = self.players[*player].as_ref() {
+                    team.score += player.score;
                 }
             }
         }
@@ -98,11 +102,9 @@ impl Reconstruct {
         let mut out = String::new();
         let mut playervec = Vec::new();
         if let Some(my) = self.players[self.myid].as_ref() {
-            for player in self.players.iter() {
-                if let Some(player) = player {
-                    if player.squadid == my.squadid {
-                        playervec.push(player);
-                    }
+            for player in self.players.iter().flatten() {
+                if player.squadid == my.squadid {
+                    playervec.push(player);
                 }
             }
         }
@@ -216,12 +218,8 @@ impl Reconstruct {
                 self.totalplayers = 0;
                 self.stage = stage;
             }
-            ParseLineResult::UnhandledGameSession(_) => {
-                return;
-            }
-            ParseLineResult::Unhandled(_) => {
-                return;
-            }
+            ParseLineResult::UnhandledGameSession(_) => {}
+            ParseLineResult::Unhandled(_) => {}
             ParseLineResult::Score(playernum, score) => {
                 let playerid = self.playermap[playernum];
                 if let Some(player) = &mut self.players[playerid] {
@@ -236,12 +234,8 @@ impl Reconstruct {
             ParseLineResult::Shutdown => {
                 self.running = false;
             }
-            ParseLineResult::Misc => {
-                return;
-            }
-            _ => {
-                return;
-            }
+            ParseLineResult::Misc => {}
+            _ => {}
         }
         //println!("{:?}", l2);
     }
@@ -258,11 +252,11 @@ impl std::fmt::Display for Reconstruct {
         if let Some(my) = self.players[self.myid].as_ref() {
             writeln!(f, "Me: {}: score {}, #{}", my, my.score, self.myscore)?;
             if my.died {
-                write!(f, "time: {}\n", my.lifetime.as_secs())?;
+                writeln!(f, "time: {}", my.lifetime.as_secs())?;
             }
         }
         if self.running {
-            write!(f, "Time: {:.2}\n", self.starttime.elapsed().as_secs_f32())?;
+            writeln!(f, "Time: {:.2}", self.starttime.elapsed().as_secs_f32())?;
         }
         let mut playervec = self
             .players
@@ -272,7 +266,7 @@ impl std::fmt::Display for Reconstruct {
             .collect::<Vec<Player>>();
         playervec.sort();
         for player in playervec {
-            write!(f, "{}: score {}\n", player, player.score)?;
+            writeln!(f, "{}: score {}", player, player.score)?;
         }
         Ok(())
     }

@@ -95,7 +95,7 @@ fn main() {
     nwg::Font::set_global_default(Some(font)).expect("Failed to set default font");
     let data = Arc::new(Mutex::new(AppData::new()));
     let _app = BasicApp::build_ui(BasicApp {
-        data: data,
+        data,
         ..Default::default()
     })
     .expect("Failed to build UI");

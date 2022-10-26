@@ -30,10 +30,10 @@ pub struct Overlay {
 
 impl Overlay {
     pub fn popup(data: Arc<Mutex<AppData>>) -> thread::JoinHandle<()> {
-        let data = data.clone();
+        let data = data;
         thread::spawn(move || {
             let _app = Overlay::build_ui(Overlay {
-                data: data,
+                data,
                 ..Default::default()
             })
             .expect("failed to build overlay");

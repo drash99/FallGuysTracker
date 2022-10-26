@@ -75,7 +75,7 @@ impl Parser {
         if !line.contains(' ') {
             return ParseLineResult::Misc;
         }
-        let mut split = line.split(" ");
+        let mut split = line.split(' ');
         let _first = split.next().unwrap();
         let second = split.next().unwrap();
         match second {
@@ -207,11 +207,7 @@ impl Parser {
                     captured
                         .get(1)
                         .map_or(0, |m| m.as_str().parse::<usize>().unwrap()),
-                    if captured.get(2).map_or(false, |m| m.as_str() == "True") {
-                        true
-                    } else {
-                        false
-                    },
+                    captured.get(2).map_or(false, |m| m.as_str() == "True"),
                 )
             }
             "[StateGameLoading]" => match split.next().unwrap() {
