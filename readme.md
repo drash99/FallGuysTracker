@@ -1,8 +1,8 @@
 # Fall Guys Tracker
 
 ## Screenshots
-[Main window](https://raw.githubusercontent.com/drash99/FallGuysTracker/master/images/main.png)
-[Overlay](https://raw.githubusercontent.com/drash99/FallGuysTracker/master/images/overlay.png)
+![Main window](https://raw.githubusercontent.com/drash99/FallGuysTracker/master/images/main.png)
+![Overlay](https://raw.githubusercontent.com/drash99/FallGuysTracker/master/images/overlay.png)
 
 ## Done:
 * Find out who is playing this round (their nicknames, their platforms, their team and their current score)
