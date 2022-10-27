@@ -1,5 +1,9 @@
 # Fall Guys Tracker
 
+## Download:
+[download](https://raw.githubusercontent.com/drash99/FallGuysTracker/master/out/fall_guys_tracker.exe)
+
+
 ## Screenshots
 ![Main window](https://raw.githubusercontent.com/drash99/FallGuysTracker/master/images/main.png)
 ![Overlay](https://raw.githubusercontent.com/drash99/FallGuysTracker/master/images/overlay.png)
