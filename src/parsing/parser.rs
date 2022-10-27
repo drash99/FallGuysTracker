@@ -37,7 +37,7 @@ impl Parser {
             regex_success : Regex::new(r"^[0-9/_-]*: ClientGameManager::HandleServerPlayerProgress PlayerId=(\d*) is succeeded=(\w*)").unwrap(),
             regex_game_status : Regex::new(r"^[0-9/_-]*: \[ClientGameSession\] NumPlayersAchievingObjective=(\d*)").unwrap(),
             regex_loaded_stage : Regex::new(r"^[0-9/_-]*: \[\w*\] Loading game level scene ([\w_]*)").unwrap(),
-            regex_start_game : Regex::new(r"^[0-9/_-]*}: \[GameSession\] Changing state from Countdown to Playing").unwrap(),
+            regex_start_game : Regex::new(r"^[0-9/_-]*: \[GameSession\] Changing state from Countdown to Playing").unwrap(),
         }
     }
 
