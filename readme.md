@@ -1,5 +1,5 @@
 # Fall Guys Tracker
-
+# Currently Not Working!!! 
 ## Download:
 [download](https://raw.githubusercontent.com/drash99/FallGuysTracker/master/out/fall_guys_tracker.exe)
 
